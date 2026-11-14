@@ -1,0 +1,72 @@
+/*
+ * Practical 3: TCP Server (Receive Message from Client)
+ * -----------------------------------------------------
+ * Description:
+ *   Creates a TCP socket, binds to port 10002, listens for incoming
+ *   connections, accepts the client, receives and displays the message.
+ *
+ * Requirements:
+ *   Linux / WSL terminal (uses POSIX socket headers: <arpa/inet.h>, <unistd.h>)
+ *
+ * How to Run:
+ *   1. Compile server:
+ *      gcc -x c server -o server
+ *      (or if renamed with .c: gcc server.c -o server)
+ *
+ *   2. Run the server first (Terminal 1):
+ *      ./server
+ *
+ *   3. In another terminal (Terminal 2), run the client:
+ *      ./client
+ */
+
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define PORT 10002
+
+int main() {
+  int sockfd, new_sock;
+  char buffer[1024];
+
+  struct sockaddr_in server_addr, client_addr;
+  socklen_t len = sizeof(client_addr);
+
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+  if (sockfd < 0) {
+    printf("Socket creation failed\n");
+    return -1;
+  }
+
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = INADDR_ANY;
+  server_addr.sin_port = htons(PORT);
+
+  if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    printf("Bind failed\n");
+    return -1;
+  }
+
+  listen(sockfd, 5);
+  printf("TCP Server waiting...\n");
+
+  new_sock = accept(sockfd, (struct sockaddr *)&client_addr, &len);
+
+  if (new_sock < 0) {
+    printf("Accept failed\n");
+    return -1;
+  }
+
+  recv(new_sock, buffer, sizeof(buffer), 0);
+
+  printf("Message from client: %s\n", buffer);
+
+  close(new_sock);
+  close(sockfd);
+
+  return 0;
+}

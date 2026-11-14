@@ -1,0 +1,63 @@
+/*
+ * Practical 5: UDP Client (Send Datagram to Server & Receive Echo)
+ * ----------------------------------------------------------------
+ * Description:
+ *   Creates a UDP socket, sends "Hello from client" to the UDP server
+ *   at 127.0.0.1:10011, and waits to receive the echo response from the server.
+ *
+ * Requirements:
+ *   Linux / WSL terminal (uses POSIX socket headers: <arpa/inet.h>, <unistd.h>)
+ *
+ * How to Run:
+ *   1. Compile client:
+ *      gcc -x c p5 -o p5
+ *      (or if renamed with .c: gcc p5.c -o p5)
+ *
+ *   2. Make sure the UDP server (p4) is running first in Terminal 1:
+ *      ./p4
+ *
+ *   3. Run the client (Terminal 2):
+ *      ./p5
+ */
+
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define PORT 10011
+
+int main() {
+    int sockfd;
+    char buffer[1024];
+    char *message = "Hello from client";
+
+    struct sockaddr_in server_addr;
+    socklen_t len = sizeof(server_addr);
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (sockfd < 0) {
+        printf("Socket creation failed\n");
+        return -1;
+    }
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    sendto(sockfd, message, strlen(message) + 1, 0,
+           (struct sockaddr *)&server_addr, len);
+
+    printf("Message sent to server\n");
+
+    recvfrom(sockfd, buffer, sizeof(buffer), 0,
+             (struct sockaddr *)&server_addr, &len);
+
+    printf("Message from server: %s\n", buffer);
+
+    close(sockfd);
+
+    return 0;
+}

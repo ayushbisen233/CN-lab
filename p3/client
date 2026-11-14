@@ -1,0 +1,61 @@
+/*
+ * Practical 3: TCP Client (Send Message to Server)
+ * ------------------------------------------------
+ * Description:
+ *   Creates a TCP socket, connects to the TCP server at 127.0.0.1:10002,
+ *   and sends "Hello from client".
+ *
+ * Requirements:
+ *   Linux / WSL terminal (uses POSIX socket headers: <arpa/inet.h>, <unistd.h>)
+ *
+ * How to Run:
+ *   1. Compile client:
+ *      gcc -x c client -o client
+ *      (or if renamed with .c: gcc client.c -o client)
+ *
+ *   2. Make sure the TCP server is running first in Terminal 1:
+ *      ./server
+ *
+ *   3. Run the client (Terminal 2):
+ *      ./client
+ */
+
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define PORT 10002
+
+int main() {
+  int sockfd;
+  char message[1024] = "Hello from client";
+
+  struct sockaddr_in server_addr;
+
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+  if (sockfd < 0) {
+    printf("Socket creation failed\n");
+    return -1;
+  }
+
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(PORT);
+  server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+  if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <
+      0) {
+    printf("Connection failed\n");
+    return -1;
+  }
+
+  send(sockfd, message, strlen(message) + 1, 0);
+
+  printf("Message sent to server\n");
+
+  close(sockfd);
+
+  return 0;
+}
